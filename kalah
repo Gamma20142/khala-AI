@@ -10,48 +10,110 @@ import javax.swing.JFrame;
 
 public class Kalah {
 	public static void main(String args[]){
-			final KalahGui gui = new KalahGui();
-			gui.setVisible(true);
-			//GUI code
-			EventQueue.invokeLater(new Runnable(){
-				@Override
-				public void run(){
-				}
-			});
-			TwitterMessenger twit = new TwitterMessenger(3);
-			//twit.post("Travis", "Howdy Partner plp iji");
-			//twit.getPosts("travis");
-			//String posts[] = twit.getPosts("Travis");
-			//for(int i = 0; i<posts.length;i++){
-			//	System.out.println(posts[i]);
-			//}
-			//algorithmic code
-			int board[] = {3,3,3,3,3,3,0,3,3,3,3,3,3,0}; //the board for the game
-			Scanner sc = new Scanner(System.in);
-			int turn = 0;
-			//test case
-			while(checkEnd(board)){
-				boolean again = false;// see if the player scored in store allowing another turn
-				System.out.println("turn: "+turn);
-				//again = move(board, sc.nextInt(), turn);
-				//if(!again){
-				//	if(turn == 1) turn = 0;
-				//	else turn = 1;
-				//}
-				System.out.println(gui.makeMove(sc.nextInt()));
-				
+		final KalahGui gui = new KalahGui();
+		gui.setVisible(true);
+		//GUI code
+		EventQueue.invokeLater(new Runnable(){
+			@Override
+			public void run(){
 			}
+		});
+		TwitterMessenger twit = new TwitterMessenger(3);
+		//twit.post("Travis", "Howdy Partner plp iji");
+		//twit.getPosts("travis");
+		//String posts[] = twit.getPosts("Travis");
+		//for(int i = 0; i<posts.length;i++){
+		//	System.out.println(posts[i]);
+		//}
+		//algorithmic code
+		int board[] = {3,3,3,3,3,3,0,3,3,3,3,3,3,0}; //the board for the game
+		Scanner sc = new Scanner(System.in);
+		int turn = 0;
+		//test case
+		while(!checkEnd(board)){
+			boolean again = false;// see if the player scored in store allowing another turn
+			int WINS[] = new int[6];
+			int[] changeBoard = new int[14];
+			boolean cont = true;
+			while(cont){
+				for(int i = 0; i<6; i++){
+					for (int j = 0; j < 14; j++){
+						changeBoard[j] = board[j];
+					}
+					if(changeBoard[i] != 0){
+						move(changeBoard, i, 0);
+						WINS[i] = checkFuture(changeBoard,i,0);
+					}
+				}
+				int most = 0;
+				int best = 0;
+				for (int i = 0; i<6;i++){
+					if (WINS[i] > most){
+						most = WINS[i];
+						best = i;
+					}
+				}
+				move(board,best,0);
+				gui.makeMove(best);
+
+				if(changeBoard[6] == board[6]+1 && board[7] == changeBoard[7]) cont= true;
+				else cont = false;
+			}
+			System.out.println("turn: "+turn);
+			int move= sc.nextInt();
+			again = move(changeBoard, move, 1);
+			for (int j = 0; j < 14; j++){
+				board[j] = changeBoard[j];
+			}
+			gui.makeMove(move);
+			if(!again){
+				if(turn == 1) turn = 0;
+				else turn = 1;
+			}
+
+
+		}
 	}
-	
+
 	/**
 	 * Recursive call for the solution of the board
 	 */
-	public static void checkFuture(int board[], int wins){
-		
-		
+	public static int checkFuture(int board[], int wins, int turn){
+		if (wins < 10000){
+			int[] testBoard = new int[14];
+			//try everything
+			for(int i=0;i<6;i++){
+				//reset the board
+				for(int j =0;j<14;j++){
+					testBoard[j] = board[j];
+				}
+				if(board[i+7*turn]!=0){
+
+					if (move(testBoard,i+7*turn,turn)){
+						turn = (turn+1)%2;
+					}
+					wins = checkFuture(testBoard,wins, (turn+1)%2);
+				}
+
+				if(checkEnd(board)){
+					//check if we won
+					sumEnd(testBoard);
+					if(testBoard[6]>testBoard[13]){
+						if (checkEnd(board) == true){
+							System.out.println("-----WIN-----");
+						}
+						wins++;
+						return wins;
+					}else return wins;
+
+				}
+			}
+		}
+		return wins;
+
 	}
-	
-	
+
+
 	/**
 	 * Make the move for the player
 	 * @return whether the player can continue
@@ -70,14 +132,14 @@ public class Kalah {
 		}
 		//check if steal occurs
 		if (board[(pos+seeds)%14] == 1&&pos+seeds<6+7*turn){
-				board[6+7*turn] = board[12-(pos+seeds)] + board[6+7*turn]+1; // move points into scoreing
-				board[12-(pos+seeds)] = 0; // remove points from opponent
-				board[pos+seeds] = 0;
+			board[6+7*turn] = board[12-(pos+seeds)] + board[6+7*turn]+1; // move points into scoreing
+			board[12-(pos+seeds)] = 0; // remove points from opponent
+			board[pos+seeds] = 0;
 		}
 		printBoard(board);
 		return continuous;
 	}
-	
+
 	/**
 	 * prints the board
 	 */
@@ -90,33 +152,50 @@ public class Kalah {
 			System.out.print(board[i]);
 		}
 		System.out.println();
-		
+
 	}
-	
+
 	/**
 	 * Check if the game is over because one side of the board is empty 
 	 * @param board the integer array of the board
 	 * @return
 	 */
 	public static boolean checkEnd(int[] board){
-		boolean end=false;
+		boolean end=true;
 		//check my side
 		for (int i =0;i<6;i++){
 			if(board[i] != 0){
-				end = true;
+				end = false;
 				break;
 			}
 		}
-		if(!end)return end;
+		if(end)return end;
+		end=true;
 		//check my opponents side
 		for (int i=7;i<13;i++){
 			if(board[i] != 0){
-				end = true;
+				end = false;
 				break;
 			}
 		}
-		
+
 		return end;
-			
+
+	}
+
+	public static void sumEnd(int[] board)
+	{
+		for (int f = 0 ; f < 6 ; f++)
+		{
+			board[6] = board[6] + board[f];
+			board[f] = 0;
+		}
+
+
+		for (int f = 7 ; f < 12 ; f++)
+		{
+			board[13] = board[13] + board[f];
+			board[f] = 0;
+		}
 	}
 }
