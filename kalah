@@ -43,6 +43,7 @@ public class Kalah {
 					if(changeBoard[i] != 0){
 						move(changeBoard, i, 0);
 						WINS[i] = checkFuture(changeBoard,i,0);
+						System.out.println(WINS[i]);
 					}
 				}
 				int most = 0;
@@ -53,25 +54,19 @@ public class Kalah {
 						best = i;
 					}
 				}
-				move(board,best,0);
-				gui.makeMove(best);
 
 				if(changeBoard[6] == board[6]+1 && board[7] == changeBoard[7]) cont= true;
 				else cont = false;
-			}
-			System.out.println("turn: "+turn);
-			int move= sc.nextInt();
-			again = move(changeBoard, move, 1);
-			for (int j = 0; j < 14; j++){
-				board[j] = changeBoard[j];
-			}
-			gui.makeMove(move);
-			if(!again){
-				if(turn == 1) turn = 0;
-				else turn = 1;
-			}
 
-
+				move(board,best,0);
+				gui.makeMove(best);
+			}
+			again = true;
+			while(again){
+				int move= sc.nextInt();
+				again = move(board, move, 1);
+				gui.makeMove(move);
+			}
 		}
 	}
 
@@ -79,7 +74,7 @@ public class Kalah {
 	 * Recursive call for the solution of the board
 	 */
 	public static int checkFuture(int board[], int wins, int turn){
-		if (wins < 10000){
+		if (wins < 1000000){
 			int[] testBoard = new int[14];
 			//try everything
 			for(int i=0;i<6;i++){
@@ -99,18 +94,22 @@ public class Kalah {
 					//check if we won
 					sumEnd(testBoard);
 					if(testBoard[6]>testBoard[13]){
-						if (checkEnd(board) == true){
-							System.out.println("-----WIN-----");
-						}
 						wins++;
 						return wins;
 					}else return wins;
 
 				}
-			}
-		}
-		return wins;
 
+				if(board[6] >=18){
+					wins++;
+					System.out.println(wins);
+					return wins;
+				}else if(board[13] >=18){
+					return wins;
+				}
+
+			}
+		}return wins;
 	}
 
 
@@ -136,7 +135,7 @@ public class Kalah {
 			board[12-(pos+seeds)] = 0; // remove points from opponent
 			board[pos+seeds] = 0;
 		}
-		printBoard(board);
+		//printBoard(board);
 		return continuous;
 	}
 
